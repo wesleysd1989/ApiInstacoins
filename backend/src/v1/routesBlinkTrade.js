@@ -17,7 +17,11 @@ module.exports = function (server) {
     });
 
     var blinktrade = new BlinkTradeWS({
-        prod: true
+        prod: true,
+        username: env.BlinkTradeF_API_Key,
+        password: env.BlinkTradeF_API_Password,
+        FingerPrint: env.BlinkTradeF_API_Secret,
+        brokerId: 4
     });
 
     // Definir URL base para todas as rotas 
@@ -29,13 +33,34 @@ module.exports = function (server) {
             res.json({
                 retorno: withdraws
             })
+        }).catch(function (err) {
+            res.json({
+                err: err
+            })
         });
     })
 
     router.get('/saque', (req, res, next) => {
-        res.json({
-            retorno: "/saque"
-        })
+        var quantity = req.param('quantity');
+        var carteira = req.param('carteira');
+        blinktrade.connect().then(function () {
+            return blinktrade.requestWithdraw({
+                amount: parseInt(quantity * 1e8),
+                currency: 'BTC',
+                method: 'bitcoin',
+                data: {
+                    Wallet: carteira
+                }
+            });
+        }).then(function (withdraw) {
+            res.json({
+                withdraw: withdraw
+            })
+        }).catch(function (err) {
+            res.json({
+                err: err
+            })
+        });
     })
 
     router.get('/compra', (req, res, next) => {
@@ -43,25 +68,32 @@ module.exports = function (server) {
             retorno: "/compra"
         })
     })
+
     router.get('/balance', (req, res, next) => {
-        Blinktrade.balance().then(function (balance) {
-            console.log(balance)
+        Blinktrade.balance().then(function (balance) {            
             res.json({
                 BRL: parseFloat(balance['4'].BRL / 1e8),
                 BRL_Locked: parseFloat(balance['4'].BRL_locked / 1e8),
                 BTC: parseFloat(balance['4'].BTC / 1e8),
                 BTC_Locked: parseFloat(balance['4'].BTC_locked / 1e8),
             })
-        });
-    })
-    router.get('/historico/trade', (req, res, next) => {
-        blinktrade.connect().then(function () {
-            return blinktrade.tradeHistory();
-        }).then(function (tradeHistory) {
+        }).catch(function (err) {
             res.json({
-                tradeHistory: tradeHistory
+                err: err
             })
         });
+    })
+
+    router.get('/historico/trade', (req, res, next) => {
+        Blinktrade.myOrders().then(function(myOrders) {
+            res.json({
+                myOrders: myOrders
+            })
+          }).catch(function (err) {
+            res.json({
+                err: err
+            })
+        });          
     })
 }
 

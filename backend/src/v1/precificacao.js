@@ -37,20 +37,20 @@ module.exports = function (server) {
 
     // Definir URL base para todas as rotas 
     const router = express.Router()
-    server.use('/api/v1/', router)
+    server.use('/api/v1/', router)    
     //if (V01 != "BITCOIN") then ((V10/(100-(V09*100))*100)-V10) else ((V06/(100-(V05*100))*100)-V06)
     router.get('/precificacao', (req, res, next) => {
         res.json({
             BTC: {
                 COTACAO_BRL_BTC: cotacao.sell,
                 PCT_CORRET_BTC: 0.5,
-                TX_SAQ_BTC: 0.00001200,
+                TX_SAQ_BTC: 0.000012,
                 PCT_LUCRO_BTC: 2,
                 COTACAO_BTC_ALT: 1.0,
                 PCT_CORRET_ALT: 0.1,
-                TX_SAQ_ALT: 0.00001200,
+                TX_SAQ_ALT: 0.000012,
                 PCT_LUCRO_ALT: 5,
-                CUSTO_CORRET_SAQ_ALT: custoCorretSaqBTC = ((0.00001200 / (100 - (0.5 * 100)) * 100) - 0.00001200)
+                CUSTO_CORRET_SAQ_ALT: 0.000006
             },
             NANO: {
                 COTACAO_BRL_BTC: cotacao.sell,
