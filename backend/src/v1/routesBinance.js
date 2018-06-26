@@ -35,9 +35,9 @@ module.exports = function (server) {
         });
     })
 
-    router.get('/compra', (req, res, next) => {
-        var quantity = req.param('quantity');
-        var coin = req.param('coin');
+    router.post('/compra', (req, res, next) => {
+        var quantity = req.body.quantity;
+        var coin = req.body.coin;
         Binance.marketBuy(coin, quantity, (error, response) => {
             res.json({
                 error: error,
@@ -46,6 +46,19 @@ module.exports = function (server) {
             })
         });
     })
+
+    router.post('/venda', (req, res, next) => {
+        var quantity = req.body.quantity;
+        var coin = req.body.coin; // coin exemple: BTCNANO  BNBNANO
+        Binance.marketSell(coin, quantity, (error, response) => {
+            res.json({
+                error: error,
+                Retorno: response,
+                OrdenId: response.orderId
+            })
+        });
+    })
+
     router.get('/balance', (req, res, next) => {
         Binance.balance((error, balances) => {
             res.json({

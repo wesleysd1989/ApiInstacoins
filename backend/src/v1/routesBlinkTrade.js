@@ -53,36 +53,72 @@ module.exports = function (server) {
     });
 
 
-    router.get('/compra', (req, res, next) => {
+    router.post('/compra', (req, res, next) => {
+        var quantity = req.body.quantity;
+        Blinktrade.sendOrder({
+            msgType: 'D',
+            side: '1', //sell
+            price: parseInt((50000 * 1e8).toFixed(0)), //R$ 30000
+            amount: parseInt((quantity * 1e8).toFixed(0)),
+            symbol: 'BTCBRL',
+            ordType: '2', // limited
+            clOrdID: '1'
+        }).then(function (order) {
             res.json({
-                retorno: "/compra"
+                order: order
             })
-        })
+        }).catch(function (err) {
+            res.json({
+                err: err
+            })
+        });
+    })
+
+    router.post('/venda', (req, res, next) => {
+        var quantity = req.body.quantity;
+        Blinktrade.sendOrder({
+            msgType: 'D',
+            side: '2', //sell
+            price: parseInt((1 * 1e8).toFixed(0)), //R$ 30000
+            amount: parseInt((quantity * 1e8).toFixed(0)),
+            symbol: 'BTCBRL',
+            ordType: '2', // limited
+            clOrdID: '1'
+        }).then(function (order) {
+            res.json({
+                order: order
+            })
+        }).catch(function (err) {
+            res.json({
+                err: err
+            })
+        });
+    })
 
     router.get('/balance', (req, res, next) => {
-            Blinktrade.balance().then(function (balance) {
-                res.json({
-                    BRL: parseFloat(balance['4'].BRL / 1e8),
-                    BRL_Locked: parseFloat(balance['4'].BRL_locked / 1e8),
-                    BTC: parseFloat(balance['4'].BTC / 1e8),
-                    BTC_Locked: parseFloat(balance['4'].BTC_locked / 1e8),
-                })
-            }).catch(function (err) {
-                res.json({
-                    err: err
-                })
-            });
-        })
+        Blinktrade.balance().then(function (balance) {
+            res.json({
+                BRL: parseFloat(balance['4'].BRL / 1e8),
+                BRL_Locked: parseFloat(balance['4'].BRL_locked / 1e8),
+                BTC: parseFloat(balance['4'].BTC / 1e8),
+                BTC_Locked: parseFloat(balance['4'].BTC_locked / 1e8),
+            })
+        }).catch(function (err) {
+            res.json({
+                err: err
+            })
+        });
+    })
 
     router.get('/historico/trade', (req, res, next) => {
-            Blinktrade.myOrders().then(function (myOrders) {
-                res.json({
-                    myOrders: myOrders
-                })
-            }).catch(function (err) {
-                res.json({
-                    err: err
-                })
-            });
-        })
+        Blinktrade.myOrders().then(function (myOrders) {
+            res.json({
+                myOrders: myOrders
+            })
+        }).catch(function (err) {
+            res.json({
+                err: err
+            })
+        });
+    })
 }
