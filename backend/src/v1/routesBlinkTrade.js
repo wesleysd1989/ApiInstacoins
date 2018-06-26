@@ -32,9 +32,11 @@ module.exports = function (server) {
     router.post('/saque', (req, res, next) => {
         var quantity = req.body.quantity;
         var carteira = req.body.carteira;
+        var descricao = req.body.descricao;
         Blinktrade.requestWithdraw({
             amount: parseInt(quantity * 1e8),
             currency: 'BTC',
+            memo: descricao,
             method: 'bitcoin',
             data: {
                 Wallet: carteira

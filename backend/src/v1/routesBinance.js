@@ -23,10 +23,10 @@ module.exports = function (server) {
           });
     })
 
-    router.get('/saque', (req, res, next) => {
-        var quantity = req.param('quantity');
-        var coin = req.param('coin');
-        var carteira = req.param('carteira');
+    router.post('/saque', (req, res, next) => {
+        var quantity = req.body.quantity;
+        var coin = req.body.coin;
+        var carteira = req.body.carteira;
         Binance.withdraw(coin, carteira, quantity, false, (error, response) => {
             res.json({
                 error: error,
