@@ -2,26 +2,15 @@
 const env = require('../../.env')
 const express = require('express')
 const BlinkTradeRest = require("blinktrade").BlinkTradeRest;
-const BlinkTradeWS = require("blinktrade").BlinkTradeWS;
-
-
 
 module.exports = function (server) {
 
     var Blinktrade = new BlinkTradeRest({
         prod: true,
-        key: env.BlinkTradeF_API_Key,
-        secret: env.BlinkTradeF_API_Secret,
+        key: env.BlinkTrade_API_Key,
+        secret: env.BlinkTrade_API_Secret,
         currency: "BRL",
         brokerId: 4,
-    });
-
-    var blinktrade = new BlinkTradeWS({
-        prod: true,
-        username: env.BlinkTradeF_API_Key,
-        password: env.BlinkTradeF_API_Password,
-        FingerPrint: env.BlinkTradeF_API_Secret,
-        brokerId: 4
     });
 
     // Definir URL base para todas as rotas 
@@ -40,18 +29,16 @@ module.exports = function (server) {
         });
     })
 
-    router.get('/saque', (req, res, next) => {
-        var quantity = req.param('quantity');
-        var carteira = req.param('carteira');
-        blinktrade.connect().then(function () {
-            return blinktrade.requestWithdraw({
-                amount: parseInt(quantity * 1e8),
-                currency: 'BTC',
-                method: 'bitcoin',
-                data: {
-                    Wallet: carteira
-                }
-            });
+    router.post('/saque', (req, res, next) => {
+        var quantity = req.body.quantity;
+        var carteira = req.body.carteira;
+        Blinktrade.requestWithdraw({
+            amount: parseInt(quantity * 1e8),
+            currency: 'BTC',
+            method: 'bitcoin',
+            data: {
+                Wallet: carteira
+            }
         }).then(function (withdraw) {
             res.json({
                 withdraw: withdraw
@@ -61,39 +48,39 @@ module.exports = function (server) {
                 err: err
             })
         });
-    })
+    });
+
 
     router.get('/compra', (req, res, next) => {
-        res.json({
-            retorno: "/compra"
+            res.json({
+                retorno: "/compra"
+            })
         })
-    })
 
     router.get('/balance', (req, res, next) => {
-        Blinktrade.balance().then(function (balance) {            
-            res.json({
-                BRL: parseFloat(balance['4'].BRL / 1e8),
-                BRL_Locked: parseFloat(balance['4'].BRL_locked / 1e8),
-                BTC: parseFloat(balance['4'].BTC / 1e8),
-                BTC_Locked: parseFloat(balance['4'].BTC_locked / 1e8),
-            })
-        }).catch(function (err) {
-            res.json({
-                err: err
-            })
-        });
-    })
+            Blinktrade.balance().then(function (balance) {
+                res.json({
+                    BRL: parseFloat(balance['4'].BRL / 1e8),
+                    BRL_Locked: parseFloat(balance['4'].BRL_locked / 1e8),
+                    BTC: parseFloat(balance['4'].BTC / 1e8),
+                    BTC_Locked: parseFloat(balance['4'].BTC_locked / 1e8),
+                })
+            }).catch(function (err) {
+                res.json({
+                    err: err
+                })
+            });
+        })
 
     router.get('/historico/trade', (req, res, next) => {
-        Blinktrade.myOrders().then(function(myOrders) {
-            res.json({
-                myOrders: myOrders
-            })
-          }).catch(function (err) {
-            res.json({
-                err: err
-            })
-        });          
-    })
+            Blinktrade.myOrders().then(function (myOrders) {
+                res.json({
+                    myOrders: myOrders
+                })
+            }).catch(function (err) {
+                res.json({
+                    err: err
+                })
+            });
+        })
 }
-

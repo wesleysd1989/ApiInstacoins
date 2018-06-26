@@ -10,7 +10,6 @@ const Binance = new binance().options({
 });
 
 module.exports = function (server) {
-
     // Definir URL base para todas as rotas 
     const router = express.Router()
     server.use('/api/v1/binance', router)
