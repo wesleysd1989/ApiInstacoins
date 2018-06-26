@@ -2,22 +2,21 @@
 const env = require('../../.env')
 const express = require('express')
 const binance = require('node-binance-api');
+const Binance = new binance().options({
+    APIKEY: env.APIKEY,
+    APISECRET: env.APISECRET,
+    useServerTime: true, // If you get timestamp errors, synchronize to server time at startup
+    test: false // If you want to use sandbox mode where orders are simulated
+});
 
 module.exports = function (server) {
-
-    binance.options({
-        APIKEY: env.Binance_APIKEY,
-        APISECRET: env.Binance_APISECRET,
-        useServerTime: true, // If you get timestamp errors, synchronize to server time at startup
-        test: false // If you want to use sandbox mode where orders are simulated
-    });
 
     // Definir URL base para todas as rotas 
     const router = express.Router()
     server.use('/api/v1/binance', router)
 
     router.get('/historico/saque', (req, res, next) => {
-        binance.withdrawHistory((error, response) => {
+        Binance.withdrawHistory((error, response) => {
             res.json({
                 error: error,
                 Retorno: response
@@ -29,7 +28,7 @@ module.exports = function (server) {
         var quantity = req.param('quantity');
         var coin = req.param('coin');
         var carteira = req.param('carteira');
-        binance.withdraw(coin, carteira, quantity, false, (error, response) => {
+        Binance.withdraw(coin, carteira, quantity, false, (error, response) => {
             res.json({
                 error: error,
                 Retorno: response
@@ -40,7 +39,7 @@ module.exports = function (server) {
     router.get('/compra', (req, res, next) => {
         var quantity = req.param('quantity');
         var coin = req.param('coin');
-        binance.marketBuy(coin, quantity, (error, response) => {
+        Binance.marketBuy(coin, quantity, (error, response) => {
             res.json({
                 error: error,
                 Retorno: response,
@@ -49,7 +48,7 @@ module.exports = function (server) {
         });
     })
     router.get('/balance', (req, res, next) => {
-        binance.balance((error, balances) => {
+        Binance.balance((error, balances) => {
             res.json({
                 BTCbalances: balances.BTC.available,
                 NANObalances: balances.NANO.available,
@@ -58,11 +57,11 @@ module.exports = function (server) {
         });
     })
     router.get('/historico/trade', (req, res, next) => {
-        binance.trades("NANOBNB", (error, trades, symbol) => {
+        Binance.trades("NANOBNB", (error, trades, symbol) => {
             res.json({
                 trades: trades
             })
         });
     })
+    
 }
-
