@@ -54,18 +54,29 @@ module.exports = function (server) {
 
 
     router.post('/compra', (req, res, next) => {
-        var quantity = req.body.quantity;
-        Blinktrade.sendOrder({
-            msgType: 'D',
-            side: '1', //sell
-            price: parseInt((50000 * 1e8).toFixed(0)), //R$ 30000
-            amount: parseInt((quantity * 1e8).toFixed(0)),
-            symbol: 'BTCBRL',
-            ordType: '2', // limited
-            clOrdID: '1'
-        }).then(function (order) {
+        var quantity = req.body.quantity; // Quantidade a ser comprada, informação fornecida pelo usuário
+        var cotacao = req.body.cotacao; // Cotação a ser paga, fornecida pelo usuário
+        var margin = req.body.margin/100; // Porcentagem máxima acima do preço normal, fornecida pelo usuário
+        var price = 0;
+        Blinktrade.ticker(price).then(function(ticker) {
+            if (margin > 1-(cotacao/ticker.sell)) {
+                Blinktrade.sendOrder({
+                    msgType: 'D', // Full doc here: http://www.onixs.biz/fix-dictionary/4.4/msgType_D_68.html
+                    symbol: 'BTCBRL', // Can be BTCBRL, BTCPKR, BTCVND, BTCVEF, BTCCLP.
+                    ordType: '2', //1=Market, 2=Limited, 3=Stop, 4=Stop Limit, G=Swap, P=Pegged
+                    side: '1', //# 1-Buy , 2-Sell
+                    price: parseInt(((ticker.sell*(1+margin)) * 1e8).toFixed(0)),
+                    amount: parseInt(quantity * 1e8, 10)
+                })
+            } else {
+                res.json({
+                    err: "Cotação de compra abaixo da margem de segurança. A ORDEM NÃO FOI CRIADA."
+                })
+            }
+        }).then(function (ticker, order) {
             res.json({
-                order: order
+                order: order,
+                ticker: ticker
             })
         }).catch(function (err) {
             res.json({
@@ -75,18 +86,29 @@ module.exports = function (server) {
     })
 
     router.post('/venda', (req, res, next) => {
-        var quantity = req.body.quantity;
-        Blinktrade.sendOrder({
-            msgType: 'D',
-            side: '2', //sell
-            price: parseInt((1 * 1e8).toFixed(0)), //R$ 30000
-            amount: parseInt((quantity * 1e8).toFixed(0)),
-            symbol: 'BTCBRL',
-            ordType: '2', // limited
-            clOrdID: '1'
-        }).then(function (order) {
+        var quantity = req.body.quantity; // Quantidade a ser comprada, informação fornecida pelo usuário
+        var cotacao = req.body.cotacao; // Cotação a ser paga, fornecida pelo usuário
+        var margin = req.body.margin/100; // Porcentagem máxima acima do preço normal, fornecida pelo usuário
+        var price = 0;
+        Blinktrade.ticker(price).then(function(ticker) {
+            if (1-cotacao/ticker.buy > margin*-1) {
+                Blinktrade.sendOrder({
+                    msgType: 'D', // Full doc here: http://www.onixs.biz/fix-dictionary/4.4/msgType_D_68.html
+                    symbol: 'BTCBRL', // Can be BTCBRL, BTCPKR, BTCVND, BTCVEF, BTCCLP.
+                    ordType: '2', //1=Market, 2=Limited, 3=Stop, 4=Stop Limit, G=Swap, P=Pegged
+                    side: '2', //# 1-Buy , 2-Sell
+                    price: parseInt(((ticker.buy-(ticker.buy*margin)) * 1e8).toFixed(0)),
+                    amount: parseInt(quantity * 1e8, 10)
+                })
+            } else {
+                res.json({
+                    err: "Cotação de venda abaixo da margem de segurança. A ORDEM NÃO FOI CRIADA."
+                })
+            }
+        }).then(function (ticker, order) {
             res.json({
-                order: order
+                order: order,
+                ticker: ticker
             })
         }).catch(function (err) {
             res.json({

@@ -62,6 +62,7 @@ module.exports = function (server) {
     router.get('/balance', (req, res, next) => {
         Binance.balance((error, balances) => {
             res.json({
+                error: error,
                 BTCbalances: balances.BTC.available,
                 NANObalances: balances.NANO.available,
                 BNBbalances: balances.BNB.available
